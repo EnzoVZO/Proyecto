@@ -1,0 +1,250 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --bg-main: #f4f6f9; /* Light generic gray background */
+    --bg-panel: #ffffff; /* Pure white panel */
+    --border-color: #d1d5db; /* Light gray border */
+    --text-primary: #1f2937; /* Dark gray text */
+    --text-secondary: #6b7280; /* Medium gray text */
+    --accent-blue: #2563eb; /* Corporate blue */
+    --accent-blue-hover: #1d4ed8; 
+    --accent-red: #ef4444; /* Striking Red */
+    --accent-green: #10b981; /* Standard Green */
+    --input-bg: #ffffff; /* White input */
+    --btn-secondary-bg: #f3f4f6; /* Very light gray button */
+    --btn-secondary-hover: #e5e7eb; 
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Typography */
+h1, h2, h3 { font-weight: 600; color: var(--text-primary); }
+h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+h2 { font-size: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+
+/* Layout Containers */
+.container {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.panel {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Added slight shadow for generic feel */
+}
+
+/* Header & Nav */
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.header-title { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); }
+.user-controls { display: flex; align-items: center; gap: 1rem; font-size: 0.9rem; color: var(--text-secondary); }
+.role-badge { background: rgba(37, 99, 235, 0.1); color: var(--accent-blue); padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+
+/* Forms & Inputs */
+.form-group {
+    margin-bottom: 1rem;
+}
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+}
+.form-control {
+    width: 100%;
+    padding: 0.5rem 0.8rem;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.form-grid-base {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-grid-factors {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+/* Horizontal Filters (Dashboard) */
+.filters-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.filters-row .form-group { margin-bottom: 0; min-width: 200px; }
+.filters-actions { display: flex; gap: 0.5rem; }
+
+/* Buttons */
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+.btn-primary {
+    background-color: var(--accent-blue);
+    color: white;
+}
+.btn-primary:hover { background-color: var(--accent-blue-hover); }
+.btn-secondary {
+    background-color: var(--btn-secondary-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+.btn-secondary:hover { background-color: var(--btn-secondary-hover); }
+.btn-danger { background-color: var(--accent-red); color: white; }
+
+.action-bar {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Tables */
+.table-responsive {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-panel);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1200px; /* Forces horizontal scroll */
+}
+th, td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+th {
+    background-color: #f8f9fa;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Login specific */
+.login-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-box {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    padding: 2.5rem;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+.login-box h1 { font-size: 1.5rem; margin-bottom: 2rem; }
+
+/* Custom Modal */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.custom-modal-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: auto;
+    min-width: 400px;
+    max-width: 900px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+.custom-modal-header {
+    background: var(--input-bg);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.custom-modal-header.error {
+    background-color: var(--accent-red);
+    color: white;
+}
+.custom-modal-header.success {
+    border-top: 4px solid var(--accent-green);
+}
+.custom-modal-header.info {
+    border-top: 4px solid #ffc107;
+}
+.custom-modal-body {
+    padding: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+.custom-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    text-align: right;
+    background: rgba(0,0,0,0.2);
+}

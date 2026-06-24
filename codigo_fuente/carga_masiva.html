@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga Masiva</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tabs { display: flex; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .tab { padding: 0.8rem 1.5rem; background: var(--input-bg); border-radius: 4px 4px 0 0; font-weight: 600; cursor: pointer; color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Carga Masiva de Calificaciones por Factor Decimal</div>
+    </div>
+
+    <div class="container">
+        <div class="panel" style="position: relative;">
+            <button class="btn btn-secondary" style="position: absolute; top: 1.5rem; right: 1.5rem;" onclick="window.location.href='dashboard.html'">Volver al Dashboard</button>
+            <div class="tabs">
+                <div class="tab">Archivo</div>
+            </div>
+
+            <div id="error-banner" style="display: none; background-color: #fee2e2; border-left: 4px solid var(--accent-red); padding: 1rem; margin-bottom: 1rem; border-radius: 4px; max-height: 200px; overflow-y: auto;"></div>
+
+            <div class="table-responsive" style="height: 50vh; margin-bottom: 2rem;">
+                <table>
+                    <thead>
+                        <tr id="preview-headers">
+                            <th style="width: 40px; text-align: center; background-color: var(--border-color);"># Fila</th>
+                            <th>Ejercicio</th>
+                            <th>Nemo</th>
+                            <th>Fecha</th>
+                            <th>Sec.</th>
+                            <th>Val.Hist</th>
+                            <!-- The rest added by JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-carga">
+                        <!-- Vista previa vacía -->
+                        <tr><td colspan="12" style="text-align:center; color: var(--text-secondary); padding: 3rem;">No hay registros. Seleccione un archivo.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('file-upload').click()">Seleccionar Archivo</button>
+                    <button class="btn btn-secondary" onclick="showModal('Formato Archivo de Carga', `<style>.mockup-table{width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:1rem;}.mockup-table th,.mockup-table td{border:1px solid #dee2e6;padding:8px;text-align:left;}.mockup-table th{background-color:#f8f9fa;font-weight:600;}</style><div style='max-height: 50vh; overflow-y: auto;'><p style='margin-bottom: 1rem;'>El archivo debe tener <b>exactamente 38 columnas</b> en la Fila 1 con los siguientes parámetros:</p><table class='mockup-table'><thead><tr><th>Posición</th><th>Campo</th><th>Tipo</th><th>Largo Campo</th><th>Decimales</th><th>Obligatorio</th><th>Ejemplo</th></tr></thead><tbody><tr><td>0</td><td>EJERCICIO</td><td>NUMBER</td><td>4</td><td>0</td><td>S</td><td>2025</td></tr><tr><td>1</td><td>MERCADO</td><td>STRING</td><td>2</td><td>0</td><td>S</td><td>AC</td></tr><tr><td>2</td><td>NEMO</td><td>STRING</td><td>40</td><td>0</td><td>S</td><td>COPEC</td></tr><tr><td>3</td><td>FEC_PAGO</td><td>STRING</td><td>10</td><td>0</td><td>S</td><td>30-12-2025</td></tr><tr><td>4</td><td>SEC_EVE</td><td>NUMBER</td><td>10</td><td>0</td><td>S</td><td>0123456789</td></tr><tr><td>5</td><td>DESCRIPCION</td><td>STRING</td><td>50</td><td>0</td><td>S</td><td>DIVIDENDO...</td></tr><tr><td>6</td><td>VAL_HIST</td><td>NUMBER</td><td>16</td><td>4</td><td>S</td><td>123456789...</td></tr><tr><td>7</td><td>F8</td><td>NUMBER</td><td>16</td><td>8</td><td>S</td><td>0.12345678...</td></tr><tr><td>...</td><td>F9 al F37</td><td>NUMBER</td><td>16</td><td>8</td><td>S</td><td>0.12345678...</td></tr><tr><td>37</td><td>ACOGIDO_ISFUT</td><td>STRING</td><td>2</td><td>0</td><td>S</td><td>SI</td></tr></tbody></table></div>`, 'info')">VER FORMATO CSV</button>
+                </div>
+                <input type="file" id="file-upload" style="display: none;" onchange="procesarCSV(event)" accept=".csv">
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="grabarCarga()">GRABAR / CALCULAR FACTORES</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initSession();
+            const headerTr = document.getElementById('preview-headers');
+            if(headerTr) {
+                const nombresOriginales = {
+                    8: "Con crédito por IDPC generados a contar del 01.01.2017",
+                    9: "Con crédito por IDPC acumulados hasta el 31.12.2016",
+                    10: "Con derecho a crédito por pago de IDPC voluntario",
+                    11: "Sin derecho a crédito",
+                    12: "Rentas provenientes del registro RAP y Diferencia Inicial...",
+                    13: "Otras rentas percibidas Sin Prioridad en su orden de imputación",
+                    14: "Exceso Distribuciones Desproporcionadas (N°9 Art.14 A)",
+                    15: "Utilidades afectadas con impuesto sustitutivo al FUT Ley N°20.780",
+                    16: "Rentas generadas hasta el 31.12.1983 y/o utilidades afectadas ISFUT Ley N°21.210",
+                    17: "Rentas Exentas de IGC (Artículo 11, Ley 18.401), Afectas a Impuesto Adicional",
+                    18: "Rentas Exentas de IGC y/o Impuesto Adicional (IA)",
+                    19: "Ingresos No Constitutivos de Renta",
+                    20: "No Sujetos a Restitución Hasta 31.12.2019 Sin derecho a devolución",
+                    21: "No Sujetos a Restitución Hasta 31.12.2019 Con derecho a devolución",
+                    22: "No Sujetos a Restitución contar 01.01.2020 Sin derecho a devolución",
+                    23: "No Sujetos a Restitución contar 01.01.2020 Con derecho a devolución",
+                    24: "Sujetos a restitución sin derecho a devolución",
+                    25: "Sujetos a restitución Con derecho a devolución",
+                    26: "Sujetos a restitución Sin derecho a devolución (Acum. hasta 31.12.2016)",
+                    27: "Sujetos a restitución Con derecho a devolución (Acum. hasta 31.12.2016)",
+                    28: "Crédito por IPE",
+                    29: "Asociados a rentas afectas Sin derecho a devolución",
+                    30: "Asociados a rentas afectas Con derecho a devolución",
+                    31: "Asociados a rentas exentas (artículo 11, Ley 18.401) Sin derecho",
+                    32: "Asociados a rentas exentas (artículo 11, Ley 18.401) Con derecho",
+                    33: "Crédito por IPE",
+                    34: "Crédito por impuesto tasa adicional, Ex. Art. 21 LIR",
+                    35: "Tasa Efectiva del credito del FUT (TEF)",
+                    36: "TASA EFECTIVA DEL CRÉDITO DEL FUNT (TEX)",
+                    37: "DEVOLUCION DE CAPITAL ART.17 N° 7 LIR."
+                };
+                for(let i=8; i<=37; i++) {
+                    let th = document.createElement('th');
+                    th.innerText = 'F' + i;
+                    th.title = nombresOriginales[i] || 'Factor ' + i;
+                    th.style.cursor = 'help';
+                    headerTr.appendChild(th);
+                }
+            }
+        });
+        
+        let pendingData = []; // Para guardar en BD si todo sale bien
+        
+        function procesarCSV(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                // Manejar finales de linea de Windows (\r\n) y Unix (\n)
+                const rows = text.replace(/\r/g, '').split('\n');
+                
+                const tbody = document.getElementById('tabla-carga');
+                tbody.innerHTML = ''; // Limpiar
+                pendingData = [];
+                
+                if (rows.length < 2) {
+                    showModal('Error', 'Archivo sin datos válidos.', 'error');
+                    e.target.value = ''; // resetear input
+                    return;
+                }
+
+                const delimiter = rows[0].includes(';') ? ';' : ',';
+                let hasGlobalError = false;
+                let previewCount = 0;
+                let textErrors = [];
+                const errorBanner = document.getElementById('error-banner');
+                errorBanner.style.display = 'none';
+                errorBanner.innerHTML = '';
+                
+                // Validación estricta de cabeceras (Fila 1)
+                const expectedHeaders = ['EJERCICIO', 'MERCADO', 'NEMO', 'FEC_PAGO', 'SEC_EVE', 'DESCRIPCION', 'VAL_HIST'];
+                for(let i=8; i<=37; i++) expectedHeaders.push('F'+i);
+                expectedHeaders.push('ACOGIDO_ISFUT');
+
+                const actualHeaders = rows[0].split(delimiter).map(h => h.trim().toUpperCase());
+                
+                let headerFailed = false;
+                for(let c=0; c < expectedHeaders.length; c++) {
+                    if (actualHeaders[c] !== expectedHeaders[c]) {
+                        hasGlobalError = true;
+                        headerFailed = true;
+                        textErrors.push(`<strong>Fila 1, Columna ${c+1}:</strong> Se esperaba cabecera <b>${expectedHeaders[c]}</b> pero dice <b>${actualHeaders[c] || 'vacío'}</b>.`);
+                    }
+                }
+                
+                // Empezamos desde la linea 1 asumiendo encabezado
+                for(let i=1; i < rows.length; i++) {
+                    if(!rows[i].trim()) continue;
+                    
+                    const cols = rows[i].split(delimiter);
+                    let rowStyle = "";
+                    let isRowError = false;
+                    let errorDetails = "";
+
+                    if(cols.length < expectedHeaders.length) {
+                        hasGlobalError = true;
+                        isRowError = true;
+                        errorDetails = `Faltan columnas (se encontraron ${cols.length} de ${expectedHeaders.length})`;
+                        textErrors.push(`<strong>Fila ${i+1}:</strong> ${errorDetails}.`);
+                    }
+                    
+                    // Validar celda por celda que sean numeros (excepto las primeras 6 y la ultima)
+                    if (!isRowError) {
+                        for(let c=6; c<=36; c++) {
+                            let valStr = cols[c] ? cols[c].replace(',', '.') : '0';
+                            if (isNaN(parseFloat(valStr))) {
+                                isRowError = true;
+                                hasGlobalError = true;
+                                errorDetails = `Error en Columna ${expectedHeaders[c]}: '${cols[c]}' no es numérico`;
+                                textErrors.push(`<strong>Fila ${i+1}, Columna ${expectedHeaders[c]}:</strong> '${cols[c]}' no es numérico.`);
+                                break; // Detener en el primer error de la fila
+                            }
+                        }
+                    }
+
+                    // Validar Regla de Negocio: Suma factor 8 a 16 <= 1
+                    let sum = 0;
+                    if (!isRowError) {
+                        for(let f=7; f<=15; f++) {
+                            let valStr = cols[f] ? cols[f].replace(',', '.') : '0';
+                            sum += parseFloat(valStr) || 0; 
+                        }
+                        if(sum > 1.00000001) { // Margen de error por decimales de JS
+                            isRowError = true;
+                            hasGlobalError = true;
+                            errorDetails = `Suma Factores 8 al 16 excede 1.00 (Da: ${sum.toFixed(2)})`;
+                            textErrors.push(`<strong>Fila ${i+1}:</strong> La suma matemática de los factores 8 al 16 excede 1.00 (Da: ${sum.toFixed(2)}).`);
+                        }
+                    }
+
+                    if(isRowError) {
+                        rowStyle = `style="background-color: #fee2e2; border-left: 4px solid var(--accent-red);" title="${errorDetails}"`;
+                    }
+
+                    // Previsualizacion visual (Mostrar maximo 15 lineas)
+                    if(previewCount < 15) {
+                        let fColumns = '';
+                        for(let c=7; c<=36; c++) {
+                            let cellStyle = '';
+                            let isMissing = c >= cols.length;
+                            if (isRowError && errorDetails.includes(`Columna ${expectedHeaders[c]}`)) {
+                                cellStyle = 'style="background-color: var(--accent-red); color: white; font-weight: bold;"';
+                            } else if (isRowError && isMissing) {
+                                cellStyle = 'style="background-color: #fca5a5;" title="Falta esta columna"';
+                            }
+                            fColumns += `<td title="Columna ${expectedHeaders[c]}" ${cellStyle}>${cols[c] !== undefined ? cols[c] : 'N/A'}</td>`;
+                        }
+                        
+                        let baseCols = '';
+                        const baseIndices = [0, 2, 3, 4, 6];
+                        for(let c of baseIndices) {
+                            let cellStyle = '';
+                            let isMissing = c >= cols.length;
+                            if (isRowError && errorDetails.includes(`Columna ${expectedHeaders[c]}`)) {
+                                cellStyle = 'style="background-color: var(--accent-red); color: white; font-weight: bold;"';
+                            } else if (isRowError && isMissing) {
+                                cellStyle = 'style="background-color: #fca5a5;" title="Falta esta columna"';
+                            }
+                            baseCols += `<td title="Columna ${expectedHeaders[c]}" ${cellStyle}>${cols[c] !== undefined ? cols[c] : 'N/A'}</td>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr ${rowStyle}>
+                                <td style="text-align: center; font-weight: bold; background-color: rgba(0,0,0,0.03); color: var(--text-secondary); border-right: 1px solid var(--border-color);">${i+1}</td>
+                                ${baseCols}
+                                ${fColumns}
+                            </tr>
+                        `;
+                        previewCount++;
+                    }
+                    
+                    // Solo guardamos si no hay error
+                    if(!isRowError) {
+                        pendingData.push({
+                            ej: cols[0],
+                            ori: 'BOLSA',
+                            ins: cols[2],
+                            fp: cols[3],
+                            sec: cols[4],
+                            desc: cols[5]
+                        });
+                    }
+                }
+                
+                if(textErrors.length > 0) {
+                    let maxErrorsToShow = 15;
+                    let displayedErrors = textErrors.slice(0, maxErrorsToShow);
+                    let overflowMessage = textErrors.length > maxErrorsToShow 
+                        ? `<li style="font-weight: bold; margin-top: 0.5rem;">... y ${textErrors.length - maxErrorsToShow} errores más. Por favor, revise la estructura de su archivo.</li>` 
+                        : '';
+                    
+                    errorBanner.innerHTML = '<h3 style="color:var(--accent-red); margin-bottom: 0.5rem; font-size: 1rem;">Errores Encontrados en el CSV:</h3><ul style="margin-left: 1.5rem; font-size: 0.9rem; line-height: 1.5;">' + displayedErrors.map(err => `<li>${err}</li>`).join('') + overflowMessage + '</ul>';
+                    errorBanner.style.display = 'block';
+                }
+
+                if(hasGlobalError) {
+                    pendingData = [];
+                } else if(pendingData.length > 0) {
+                    showModal('Archivo Válido', `${pendingData.length} registros previsualizados. Listos para grabar en base de datos.`, 'success');
+                }
+                
+                // Resetear el input para permitir recargar el mismo archivo
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        async function grabarCarga() {
+            if(pendingData.length === 0) {
+                showModal('Advertencia', 'Sin datos previsualizados.', 'error');
+                return;
+            }
+            showModal('Procesando...', 'Procesando envío de datos...', 'info');
+            
+            // Transacción segura con auditoría y reglas de negocio via API
+            const result = await grabarDatosSeguros(pendingData);
+            
+            if (result.error) {
+                showModal('Error de Servidor', 'Error de conexión con el servidor.', 'error');
+                return;
+            }
+
+            let msg = `Se procesaron <strong>${pendingData.length} registros</strong>.<br><br>`;
+            
+            if (result.insertados > 0) {
+                msg += `- Nuevos registros insertados: <strong>${result.insertados}</strong><br>`;
+            }
+            if (result.actualizados > 0) {
+                msg += `- Registros existentes actualizados: <strong>${result.actualizados}</strong><br>`;
+            }
+            if (result.omitidos > 0) {
+                msg += `<br><span style="color:var(--accent-blue); font-weight:bold;">Aviso: Se detectaron ${result.omitidos} registros con valores exactamente idénticos en la Base de Datos, por lo que no se realizaron cambios en ellos.</span><br><br>`;
+            }
+            if (result.rechazados > 0) {
+                msg += `<br>- Rechazados por Regla de Corredor: <strong style="color:var(--accent-red);">${result.rechazados}</strong>`;
+            }
+            
+            showModal('Resumen de Carga Transaccional', msg, 'success', () => {
+                window.location.href = 'dashboard.html';
+            });
+        }
+    </script>
+</body>
+</html>

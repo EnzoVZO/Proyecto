@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso Calificación</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Flatpickr (Librería dinámica para fechas) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Ingreso / Modificación de Calificación (Factor Decimal)</div>
+    </div>
+
+    <div class="container">
+        <!-- Datos Base -->
+        <div class="panel">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">Volver al Dashboard</button>
+            </div>
+            <div class="form-grid-base">
+                <div class="form-group">
+                    <label>Mercado</label>
+                    <select class="form-control" id="input-mercado">
+                        <option value="AC">Acciones (AC)</option>
+                        <option value="CFI">CFI</option>
+                        <option value="FM">Fondos Mutuos (FM)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Instrumento</label>
+                    <input type="text" class="form-control" id="input-instrumento" value="">
+                </div>
+                <div class="form-group">
+                    <label>Secuencia evento</label>
+                    <input type="text" class="form-control" id="input-sec" value="">
+                </div>
+                <div class="form-group">
+                    <label>Dividendo</label>
+                    <input type="number" class="form-control" id="input-div" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Fecha pago</label>
+                    <input type="date" class="form-control" id="input-fp" value="">
+                </div>
+                <div class="form-group">
+                    <label>Valor histórico</label>
+                    <input type="number" class="form-control" id="input-val" value="0.00000000" step="0.00000001">
+                </div>
+                <div class="form-group">
+                    <label>Año</label>
+                    <input type="number" class="form-control" id="input-ej" value="2023">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <input type="text" class="form-control" id="input-desc" value="">
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                    <input type="checkbox" id="input-isfut" style="width: 20px; height: 20px;">
+                    <label style="margin-bottom: 0;">Acogido a ISFUT</label>
+                </div>
+                <div class="form-group">
+                    <label>Factor de actualización</label>
+                    <input type="number" class="form-control" id="input-fact-act" value="0" step="0.00000001">
+                </div>
+            </div>
+        </div>
+
+        <!-- Factores (Grilla 3 columnas) -->
+        <div class="panel">
+            <h2 style="margin-bottom: 1.5rem;">Factores Tributarios</h2>
+            <div class="form-grid-factors">
+                <div class="form-group"><label>Factor-08: Con crédito IDPC contar 01.01.17</label><input type="number" id="f8" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-09: Con crédito IDPC acum 31.12.16</label><input type="number" id="f9" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-10: Con derecho a crédito voluntario</label><input type="number" id="f10" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-11: Sin derecho a crédito</label><input type="number" id="f11" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-12: Impto 1ra Categ. Exento con dev.</label><input type="number" id="f12" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-13: Impto 1ra Categ. Afecto sin dev.</label><input type="number" id="f13" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-14: Impto 1ra Categ. Exento sin dev.</label><input type="number" id="f14" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-15: Impto Créditos pro Imptos Ext.</label><input type="number" id="f15" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-16: No Constitutiva Renta Acog. Impto.</label><input type="number" id="f16" class="form-control" value="1.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-17: No Const Renta Dev Capital</label><input type="number" id="f17" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-18: Rentas Exentas GC y/o Adicional</label><input type="number" id="f18" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-19: Ingreso no Constitutivo Renta</label><input type="number" id="f19" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-20: Sin Derecho a Devolucion</label><input type="number" id="f20" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-21: Con Derecho a Devolucion</label><input type="number" id="f21" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-22: Sin Derecho a Devolucion</label><input type="number" id="f22" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-23: Con Derecho a Devolucion</label><input type="number" id="f23" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-24: Sin Derecho a Devolucion</label><input type="number" id="f24" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-25: Con Derecho a Devolucion</label><input type="number" id="f25" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-26: Sin Derecho a Devolucion</label><input type="number" id="f26" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-27: Con Derecho a Devolucion</label><input type="number" id="f27" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-28: Credito por IPE</label><input type="number" id="f28" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-29: Sin Derecho a Devolucion</label><input type="number" id="f29" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-30: Con Derecho a Devolucion</label><input type="number" id="f30" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-31: Sin Derecho a Devolucion</label><input type="number" id="f31" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-32: Con Derecho a Devolucion</label><input type="number" id="f32" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-33: Credito por IPE</label><input type="number" id="f33" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-34: Cred Impto Tasa Adicional Ex 21</label><input type="number" id="f34" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-35: Tasa Efectiva Cred Del FUT</label><input type="number" id="f35" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-36: Tasa Efectiva Cred Del FUNT</label><input type="number" id="f36" class="form-control" value="0.00000000" step="0.00000001"></div>
+                <div class="form-group"><label>Factor-37: Devolucion Capital Art17</label><input type="number" id="f37" class="form-control" value="0.00000000" step="0.00000001"></div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <button class="btn btn-primary" style="padding: 0.6rem 2.5rem;" onclick="guardar()">GUARDAR</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initSession();
+            flatpickr("input[type=date]", {
+                dateFormat: "Y-m-d", // Formato estandar para guardar
+                theme: "dark"
+            });
+
+            // Cargar datos si venimos de "MODIFICAR" o "COPIAR"
+            const editDataStr = sessionStorage.getItem('editData');
+            const editMode = sessionStorage.getItem('editMode');
+            if(editDataStr) {
+                const data = JSON.parse(editDataStr);
+                document.getElementById('input-mercado').value = data.mercado || data.origen || 'AC';
+                document.getElementById('input-instrumento').value = data.instrumento || '';
+                document.getElementById('input-fp').value = data.fecha_pago || '';
+                if(editMode === 'modificar') {
+                    document.getElementById('input-sec').value = data.secuencia_evento || '';
+                    document.getElementById('input-sec').readOnly = true; // No se puede cambiar llave primaria
+                } else {
+                    document.getElementById('input-sec').value = ''; // Copia necesita nueva llave
+                }
+                document.getElementById('input-val').value = data.val_hist || 1;
+                document.getElementById('input-ej').value = data.ejercicio || new Date().getFullYear();
+                document.getElementById('input-desc').value = data.descripcion || data.desc || '';
+                document.getElementById('input-div').value = data.dividendo || 0;
+                document.getElementById('input-isfut').checked = data.isfut || false;
+                document.getElementById('input-fact-act').value = data.factor_act || 0;
+                
+                if(data.factores) {
+                    for(let i=8; i<=37; i++) {
+                        let fInput = document.getElementById(`f${i}`);
+                        if(fInput && data.factores[`f${i}`] !== undefined) {
+                            fInput.value = Number(data.factores[`f${i}`]).toFixed(8);
+                        }
+                    }
+                }
+                
+                // Limpiar storage para futuras visitas limpias
+                // Mantenemos esto si queremos, pero lo borraremos despues de guardar
+            }
+        });
+
+        async function guardar() {
+            // Leer campos base
+            const mercado = document.getElementById('input-mercado').value;
+            const instrumento = document.getElementById('input-instrumento').value;
+            const fp = document.getElementById('input-fp').value;
+            const sec = document.getElementById('input-sec').value;
+            const desc = document.getElementById('input-desc').value;
+            const ej = document.getElementById('input-ej').value;
+            const valHist = parseFloat(document.getElementById('input-val').value) || 0;
+            const dividendo = parseFloat(document.getElementById('input-div').value) || 0;
+            const isfut = document.getElementById('input-isfut').checked;
+            const factorAct = parseFloat(document.getElementById('input-fact-act').value) || 0;
+
+            if(!ej || !mercado || !instrumento || !fp || !sec) {
+                showModal('Campos Incompletos', 'Campos obligatorios incompletos.', 'error');
+                return;
+            }
+
+            if (parseInt(sec, 10) <= 10000) {
+                showModal('Error de Regla de Negocio', 'La secuencia de evento debe ser superior a 10000.', 'error');
+                return;
+            }
+
+            // Calcular Origen
+            let ori = localStorage.getItem('role') === 'admin' ? 'BOLSA' : 'CORREDOR';
+            const editDataStr = sessionStorage.getItem('editData');
+            const editMode = sessionStorage.getItem('editMode');
+            if (editMode === 'modificar' && editDataStr) {
+                const data = JSON.parse(editDataStr);
+                ori = data.origen || ori; // Mantener origen original al modificar
+            }
+
+            // Leer factores (8 al 16) para validacion y guardado
+            let suma = 0;
+            const rowData = {
+                ej: ej,
+                mercado: mercado,
+                ins: instrumento,
+                fp: fp,
+                sec: sec,
+                desc: desc,
+                vh: valHist,
+                dividendo: dividendo,
+                isfut: isfut,
+                factor_act: factorAct,
+                ori: ori
+            };
+
+            for(let i=8; i<=37; i++) {
+                let val = parseFloat(document.getElementById(`f${i}`)?.value || 0);
+                if (i <= 16) {
+                    suma += val;
+                }
+                rowData[`f${i}`] = val;
+            }
+
+            if(suma > 1.00000001) {
+                showModal('Error de Regla de Negocio', `Suma de factores (8-16) excede 1.00.`, 'error');
+                return; // Corta la ejecución, no guarda
+            }
+
+            showModal('Guardando...', 'Guardando registro...', 'info');
+
+            // Guardar en Backend
+            const result = await grabarDatosSeguros([rowData]);
+
+            if (result.error) {
+                showModal('Error de Servidor', 'Error de conexión con el servidor.', 'error');
+                return;
+            }
+
+            if(result.rechazados > 0) {
+                showModal('Error de Prevalencia', 'Rechazado por regla de origen.', 'error');
+            } else {
+                showModal('Guardado Exitoso', 'Registro guardado exitosamente.', 'success', () => {
+                    window.location.href = 'dashboard.html';
+                });
+            }
+        }
+    </script>
+</body>
+</html>
