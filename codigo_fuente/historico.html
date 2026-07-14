@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Histórico - Auditoría</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Registro Histórico (Log de Auditoría)</div>
+    </div>
+
+    <div class="container">
+        <div class="panel" style="position: relative;">
+            <button class="btn btn-secondary" style="position: absolute; top: 1.5rem; right: 1.5rem;" onclick="window.location.href='dashboard.html'">Volver al Dashboard</button>
+            <h2 style="margin-bottom: 1rem; color: var(--accent-blue);">Registro de Movimientos Transaccionales</h2>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Esta pantalla es de uso exclusivo para perfiles de Auditoría y Administración. Muestra el log inmutable de operaciones.</p>
+            
+            <div class="table-responsive" style="height: 60vh;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FECHA Y HORA</th>
+                            <th>USUARIO</th>
+                            <th>PERFIL</th>
+                            <th>ACCIÓN</th>
+                            <th>DETALLE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-historico">
+                        <!-- Llenado por JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem;">
+                <button class="btn btn-secondary" id="btn-prev" onclick="cambiarPagina(-1)">Anterior</button>
+                <span id="page-info" style="color: var(--text-secondary);">Página 1</span>
+                <button class="btn btn-secondary" id="btn-next" onclick="cambiarPagina(1)">Siguiente</button>
+                <span style="margin-left: 1rem; color: var(--text-secondary);">Ir a:</span>
+                <input type="number" id="page-input" class="form-control" style="width: 70px; padding: 0.2rem; display: inline-block; text-align: center;" min="1" value="1">
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem;" onclick="goToPage()">Ir</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let currentPage = 1;
+        let historicoTotalPages = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initSession();
+            
+            // Validar si es admin, si no, patearlo (seguridad frontend básica simulada)
+            const role = localStorage.getItem('role');
+            if(role !== 'admin') {
+                showModal('Acceso Denegado', 'Acceso denegado por falta de permisos.', 'error', () => {
+                    window.location.href = 'dashboard.html';
+                });
+                return;
+            }
+
+            cargarHistorico();
+        });
+
+        function cambiarPagina(delta) {
+            currentPage += delta;
+            if(currentPage < 1) currentPage = 1;
+            cargarHistorico();
+        }
+
+        function goToPage() {
+            const input = document.getElementById('page-input');
+            let targetPage = parseInt(input.value);
+            if (isNaN(targetPage) || targetPage < 1) targetPage = 1;
+            if (targetPage > historicoTotalPages && historicoTotalPages > 0) targetPage = historicoTotalPages;
+            currentPage = targetPage;
+            cargarHistorico();
+        }
+
+        async function cargarHistorico() {
+            const tbody = document.getElementById('tabla-historico');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando registros desde el servidor encriptado...</td></tr>';
+
+            try {
+                const res = await fetch(`https://localhost:3000/api/auditoria?page=${currentPage}&limit=100`);
+                if (!res.ok) throw new Error('Network response was not ok');
+                const json = await res.json();
+                const logs = json.data;
+
+                document.getElementById('page-info').textContent = `Página ${json.page} de ${json.totalPages} (${json.total} registros)`;
+                historicoTotalPages = json.totalPages;
+                document.getElementById('btn-prev').disabled = json.page <= 1;
+                document.getElementById('btn-next').disabled = json.page >= json.totalPages;
+
+                tbody.innerHTML = '';
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No hay registros de auditoría en el sistema.</td></tr>';
+                    return;
+                }
+
+                let rowsHtml = '';
+                logs.forEach(log => {
+                    let colorClass = '';
+                    if(log.accion === 'INSERTAR') colorClass = 'color: var(--accent-green);';
+                    if(log.accion === 'MODIFICAR' || log.accion === 'CARGA_MASIVA') colorClass = 'color: var(--accent-blue);';
+                    if(log.accion.includes('RECHAZO') || log.accion === 'ELIMINAR') colorClass = 'color: var(--accent-red);';
+
+                    let dateObj = new Date(log.fecha);
+                    let formattedDate = dateObj.toLocaleString('es-CL', {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+
+                    rowsHtml += `
+                        <tr>
+                            <td style="white-space: nowrap;">${formattedDate}</td>
+                            <td style="font-weight: bold;">${log.usuario}</td>
+                            <td>${log.perfil.toUpperCase()}</td>
+                            <td style="${colorClass} font-weight: bold;">${log.accion}</td>
+                            <td>${log.detalle}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = rowsHtml;
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--accent-red);">Error al conectar con el servidor (HTTPS).</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

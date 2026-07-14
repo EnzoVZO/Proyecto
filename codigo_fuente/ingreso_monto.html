@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingreso por Montos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Ingreso de Calificación por Montos ($)</div>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+                <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">Volver al Dashboard</button>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; margin-top: 1rem;">Ingrese el <strong>Valor Histórico Total</strong> y luego los montos en pesos para cada factor. Al presionar "CALCULAR FACTORES", el sistema realizará las divisiones y mostrará los porcentajes decimales resultantes.</p>
+            
+            <div class="grid">
+                <!-- Columna Izquierda: Datos Base -->
+                <div>
+                    <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">Datos del Evento</h3>
+                    <div class="form-grid-base">
+                        <div class="form-group">
+                            <label>Mercado</label>
+                            <select class="form-control" id="input-mercado">
+                                <option value="ACCIONES">ACCIONES</option>
+                                <option value="CFI">CFI</option>
+                                <option value="FONDOS MUTUOS">FONDOS MUTUOS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Instrumento</label>
+                            <input type="text" class="form-control" id="input-nemo" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Secuencia evento</label>
+                            <input type="text" class="form-control" id="input-sec" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Dividendo</label>
+                            <input type="number" class="form-control" id="input-div" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha pago</label>
+                            <input type="date" class="form-control" id="input-fecha" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor histórico</label>
+                            <input type="number" class="form-control" id="val-hist" value="0.00000000" step="0.00000001">
+                        </div>
+                        <div class="form-group">
+                            <label>Año</label>
+                            <input type="number" class="form-control" id="input-ejercicio" value="2023">
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <input type="text" class="form-control" id="input-desc" value="">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                            <input type="checkbox" id="input-isfut" style="width: 20px; height: 20px;">
+                            <label style="margin-bottom: 0;">Acogido a ISFUT</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor de actualización</label>
+                            <input type="number" class="form-control" id="input-fact-act" value="0" step="0.00000001">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Montos y Resultados -->
+                <div>
+                    <h3 style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">Montos Monetarios ($)</h3>
+                    <div style="height: 50vh; overflow-y: auto; padding-right: 10px;">
+                        
+                        <div class="form-group">
+                            <label>Factor-08: Con crédito IDPC contar 01.01.17</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m8" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f8" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-09: Con crédito IDPC acum. a 31.12.16</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m9" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f9" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-10: Derecho a crédito sin tasa</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m10" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f10" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-11: Sin derecho a crédito</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m11" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f11" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-12: Rentas exentas de IGC</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m12" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f12" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-13: Rentas no gravadas</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m13" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f13" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-14: Ingresos no constitutivos de renta</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m14" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f14" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-15: Otros ingresos no constitutivos</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m15" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f15" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-16: No Constitutiva Renta</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m16" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f16" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-17: Rentas Dev. Capital</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m17" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f17" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-18: Rentas Exentas Adicionales</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m18" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f18" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Factor-19: Ingreso no Constitutivo Renta</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" id="m19" class="form-control" placeholder="Monto $" value="0" step="1" style="flex: 2;">
+                                <input type="text" id="f19" class="form-control" placeholder="Factor Resultante" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;">
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Factor-20: Sin Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m20" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f20" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-21: Con Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m21" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f21" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-22: Sin Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m22" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f22" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-23: Con Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m23" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f23" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-24: Sin Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m24" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f24" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-25: Con Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m25" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f25" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-26: Sin Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m26" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f26" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-27: Con Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m27" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f27" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-28: Credito por IPE</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m28" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f28" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-29: Sin Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m29" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f29" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-30: Con Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m30" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f30" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-31: Sin Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m31" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f31" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-32: Con Derecho a Devolucion</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m32" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f32" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-33: Credito por IPE</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m33" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f33" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-34: Cred Impto Tasa Adicional Ex 21</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m34" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f34" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-35: Tasa Efectiva Cred Del FUT</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m35" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f35" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-36: Tasa Efectiva Cred Del FUNT</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m36" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f36" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                        <div class="form-group"><label>Factor-37: Devolucion Capital Art17</label><div style="display: flex; gap: 0.5rem;"><input type="number" id="m37" class="form-control" value="0" step="1" style="flex: 2;"><input type="text" id="f37" class="form-control" readonly style="flex: 1; background: var(--border-color); cursor: not-allowed;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1rem;">
+                <div>
+                    <button class="btn btn-secondary" onclick="calcularFactores()">CALCULAR FACTORES</button>
+                    <span id="calc-status" style="margin-left: 1rem; font-weight: bold; color: var(--accent-red);">Cálculo Pendiente</span>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="guardar()" id="btn-guardar" disabled style="opacity: 0.5;">GUARDAR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initSession();
+            flatpickr("input[type=date]", {
+                theme: "dark",
+                dateFormat: "d-m-Y"
+            });
+        });
+
+        let factoresCalculadosListos = false;
+
+        function calcularFactores() {
+            const ej = document.getElementById('input-ejercicio').value;
+            const mercado = document.getElementById('input-mercado').value;
+            const instrumento = document.getElementById('input-nemo').value;
+            const fp = document.getElementById('input-fecha').value;
+            const sec = document.getElementById('input-sec').value;
+            const valHist = parseFloat(document.getElementById('val-hist').value) || 0;
+            const dividendo = parseFloat(document.getElementById('input-div').value) || 0;
+            const isfut = document.getElementById('input-isfut').checked;
+            const factorAct = parseFloat(document.getElementById('input-fact-act').value) || 0;
+            const desc = document.getElementById('input-desc').value;
+
+            if(!ej || !mercado || !instrumento || !fp || !sec) {
+                showModal('Campos Incompletos', 'Campos obligatorios incompletos.', 'error');
+                return;
+            }
+            if (parseInt(sec, 10) <= 10000) {
+                showModal('Error de Regla de Negocio', 'La secuencia de evento debe ser superior a 10000.', 'error');
+                return;
+            }
+            if(valHist === 0) {
+                showModal('Valor Histórico Inválido', 'Valor histórico inválido.', 'error');
+                return;
+            }
+
+            let sumFactores = 0;
+            for(let i=8; i<=37; i++) {
+                let m = parseFloat(document.getElementById('m'+i)?.value) || 0;
+                let factor = m / valHist;
+                let el = document.getElementById('f'+i);
+                if(el) el.value = factor.toFixed(8);
+                if(i <= 16) {
+                    sumFactores += factor;
+                }
+            }
+
+            if(sumFactores > 1.00000001) {
+                showModal('Error de Negocio', `Suma de factores (8-16) excede 1.00.`, 'error');
+                document.getElementById('calc-status').innerText = 'Error Matemático';
+                document.getElementById('calc-status').style.color = 'var(--accent-red)';
+                factoresCalculadosListos = false;
+                document.getElementById('btn-guardar').disabled = true;
+                document.getElementById('btn-guardar').style.opacity = '0.5';
+            } else {
+                document.getElementById('calc-status').innerText = '✓ Factores Calculados Correctamente';
+                document.getElementById('calc-status').style.color = 'var(--accent-green)';
+                factoresCalculadosListos = true;
+                document.getElementById('btn-guardar').disabled = false;
+                document.getElementById('btn-guardar').style.opacity = '1';
+                showModal('Cálculo Exitoso', 'Cálculo de factores exitoso.', 'success');
+            }
+        }
+
+        async function guardar() {
+            if(!factoresCalculadosListos) {
+                showModal('Operación Bloqueada', 'Cálculo de factores pendiente.', 'error');
+                return;
+            }
+
+            const row = {
+                ej: document.getElementById('input-ejercicio').value,
+                mercado: document.getElementById('input-mercado').value,
+                ins: document.getElementById('input-nemo').value,
+                fp: document.getElementById('input-fecha').value,
+                sec: document.getElementById('input-sec').value,
+                desc: document.getElementById('input-desc').value,
+                ori: localStorage.getItem('role') === 'admin' ? 'BOLSA' : 'CORREDOR',
+                vh: document.getElementById('val-hist').value,
+                dividendo: document.getElementById('input-div').value,
+                isfut: document.getElementById('input-isfut').checked,
+                factor_act: document.getElementById('input-fact-act').value
+            };
+            for(let i=8; i<=37; i++) {
+                let el = document.getElementById('f'+i);
+                if(el) {
+                    row[`f${i}`] = parseFloat(el.value || 0);
+                } else {
+                    row[`f${i}`] = 0;
+                }
+            }
+
+            showModal('Guardando...', 'Guardando registro...', 'info');
+
+            const result = await grabarDatosSeguros([row]);
+            
+            if (result.error) {
+                showModal('Error de Servidor', 'Error de conexión con el servidor.', 'error');
+                return;
+            }
+
+            if(result.rechazados > 0) {
+                showModal('Error de Prevalencia', 'Rechazado por regla de origen.', 'error');
+            } else {
+                showModal('Guardado Exitoso', 'Registro guardado exitosamente.', 'success', () => {
+                    window.location.href = 'dashboard.html';
+                });
+            }
+        }
+    </script>
+</body>
+</html>

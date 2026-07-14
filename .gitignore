@@ -1,0 +1,9 @@
+# Dependencias
+node_modules/
+
+# Entornos y credenciales
+.env
+
+# Archivos del SO
+.DS_Store
+Thumbs.db

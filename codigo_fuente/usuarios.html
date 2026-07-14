@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - SGT</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .grid-usuarios {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .grid-usuarios { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Gestión de Usuarios y Perfiles</div>
+        <div class="header-actions">
+            <span id="user-info" style="color: var(--text-secondary); margin-right: 1rem;"></span>
+            <button class="btn btn-secondary" onclick="window.location.href='dashboard.html'">Volver al Dashboard</button>
+            <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid-usuarios">
+            <!-- Tabla de Usuarios -->
+            <div class="panel">
+                <h2 style="margin-bottom: 1.5rem; color: var(--accent-blue);">Usuarios Activos</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>USUARIO</th>
+                                <th>NOMBRE</th>
+                                <th>ROL (PERFIL)</th>
+                                <th>FECHA CREACIÓN</th>
+                                <th>ACCIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-usuarios">
+                            <tr><td colspan="5" style="text-align:center;">Cargando usuarios...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Formulario Nuevo Usuario -->
+            <div class="panel">
+                <h2 id="form-title" style="margin-bottom: 1.5rem; color: var(--accent-green);">Crear Nuevo Usuario</h2>
+                
+                <div class="form-group">
+                    <label>Nombre de Usuario (Login)</label>
+                    <input type="text" id="nuevo-user" class="form-control" placeholder="ej: perez">
+                </div>
+                
+                <div class="form-group">
+                    <label>Nombre para Mostrar</label>
+                    <input type="text" id="nuevo-nombre" class="form-control" placeholder="ej: Juan Perez">
+                </div>
+                
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="nuevo-pass" class="form-control" placeholder="******">
+                </div>
+                
+                <div class="form-group">
+                    <label>Rol (Perfil)</label>
+                    <select id="nuevo-rol" class="form-control">
+                        <option value="corredor">Corredor</option>
+                        <option value="admin">Administrador (Bolsa)</option>
+                    </select>
+                </div>
+                
+                <button id="btn-submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="guardarUsuario()">Registrar Usuario</button>
+                <button id="btn-cancel" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem; display: none;" onclick="cancelarEdicion()">Cancelar Edición</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initSession();
+            
+            const role = localStorage.getItem('role');
+            if(role !== 'admin') {
+                showModal('Acceso Denegado', 'Acceso denegado por falta de permisos.', 'error', () => {
+                    window.location.href = 'dashboard.html';
+                });
+                return;
+            }
+
+            document.getElementById('user-info').innerText = `${localStorage.getItem('username')} (${role.toUpperCase()})`;
+            cargarUsuarios();
+        });
+
+        let editModeId = null;
+
+        async function cargarUsuarios() {
+            const tbody = document.getElementById('tabla-usuarios');
+            try {
+                const res = await fetch('https://localhost:3000/api/usuarios');
+                const usuarios = await res.json();
+                
+                tbody.innerHTML = '';
+                if(usuarios.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay usuarios.</td></tr>';
+                    return;
+                }
+
+                usuarios.forEach(u => {
+                    const rolColor = u.role === 'admin' ? 'color: var(--accent-red);' : 'color: var(--accent-blue);';
+                    const fecha = new Date(u.createdAt).toLocaleString();
+                    let btnHtml = '';
+                    if(u.username === 'admin') {
+                        btnHtml = `<span style="color:var(--text-secondary);font-size:0.8rem;">Sistema</span>`;
+                    } else {
+                        btnHtml = `
+                            <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem;" onclick="prepararEdicion('${u._id}', '${u.username}', '${u.displayName}', '${u.role}')">Editar</button>
+                            <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="eliminarUsuario('${u._id}', '${u.username}')">Borrar</button>
+                        `;
+                    }
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight: bold;">${u.username}</td>
+                            <td>${u.displayName}</td>
+                            <td style="${rolColor} font-weight:bold;">${u.role.toUpperCase()}</td>
+                            <td>${fecha}</td>
+                            <td>${btnHtml}</td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--accent-red);">Error de red.</td></tr>';
+            }
+        }
+
+        function prepararEdicion(id, username, displayName, role) {
+            editModeId = id;
+            document.getElementById('form-title').innerText = 'Editar Usuario: ' + username;
+            document.getElementById('form-title').style.color = 'var(--accent-blue)';
+            
+            document.getElementById('nuevo-user').value = username;
+            document.getElementById('nuevo-user').disabled = true; // Login no se edita
+            
+            document.getElementById('nuevo-nombre').value = displayName;
+            document.getElementById('nuevo-rol').value = role;
+            document.getElementById('nuevo-pass').value = '';
+            document.getElementById('nuevo-pass').placeholder = 'Dejar en blanco para no cambiar';
+            
+            document.getElementById('btn-submit').innerText = 'Guardar Cambios';
+            document.getElementById('btn-cancel').style.display = 'inline-block';
+        }
+
+        function cancelarEdicion() {
+            editModeId = null;
+            document.getElementById('form-title').innerText = 'Crear Nuevo Usuario';
+            document.getElementById('form-title').style.color = 'var(--accent-green)';
+            
+            document.getElementById('nuevo-user').value = '';
+            document.getElementById('nuevo-user').disabled = false;
+            
+            document.getElementById('nuevo-nombre').value = '';
+            document.getElementById('nuevo-rol').value = 'corredor';
+            document.getElementById('nuevo-pass').value = '';
+            document.getElementById('nuevo-pass').placeholder = '******';
+            
+            document.getElementById('btn-submit').innerText = 'Registrar Usuario';
+            document.getElementById('btn-cancel').style.display = 'none';
+        }
+
+        async function guardarUsuario() {
+            const username = document.getElementById('nuevo-user').value.trim();
+            const displayName = document.getElementById('nuevo-nombre').value.trim();
+            const password = document.getElementById('nuevo-pass').value;
+            const role = document.getElementById('nuevo-rol').value;
+
+            if(!username || !displayName) {
+                showModal('Incompleto', 'Campos incompletos.', 'error');
+                return;
+            }
+
+            if (!editModeId && !password) {
+                showModal('Incompleto', 'Campos incompletos.', 'error');
+                return;
+            }
+
+            if (password && password.length < 8) {
+                showModal('Contraseña Insegura', 'Contraseña requiere mínimo 8 caracteres.', 'error');
+                return;
+            }
+
+            try {
+                const url = editModeId ? `https://localhost:3000/api/usuarios/${editModeId}` : 'https://localhost:3000/api/usuarios';
+                const method = editModeId ? 'PUT' : 'POST';
+                const bodyData = editModeId ? { displayName, role, password } : { username, displayName, password, role };
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyData)
+                });
+
+                const data = await res.json();
+
+                if(res.ok && data.success) {
+                    showModal('Éxito', editModeId ? 'Usuario actualizado correctamente.' : 'Usuario creado correctamente.', 'success', () => {
+                        cancelarEdicion();
+                        cargarUsuarios();
+                    });
+                } else {
+                    showModal('Error', data.error || 'No se pudo guardar el usuario', 'error');
+                }
+            } catch (e) {
+                showModal('Error', 'Problema de red al conectar con el servidor', 'error');
+            }
+        }
+
+        async function eliminarUsuario(id, username) {
+            if(confirm(`¿Estás seguro de eliminar permanentemente al usuario '${username}'?`)) {
+                try {
+                    const res = await fetch(`https://localhost:3000/api/usuarios/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+                    
+                    if(res.ok && data.success) {
+                        cargarUsuarios();
+                    } else {
+                        showModal('Error', data.error || 'No se pudo eliminar.', 'error');
+                    }
+                } catch (e) {
+                    showModal('Error', 'Problema de red.', 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calificaciones Tributarias - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header-bar">
+        <div class="header-title">Calificaciones Tributarias</div>
+        <div class="user-controls">
+            <span id="user-display">Usuario</span>
+            <span id="role-display" class="role-badge">Rol</span>
+            <button class="btn btn-secondary" id="btn-usuarios" style="display: none; padding: 0.2rem 0.5rem; font-size: 0.8rem;" onclick="window.location.href='usuarios.html'">Gestión Usuarios</button>
+            <button class="btn btn-secondary" onclick="logout()" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filtros Superiores -->
+        <div class="panel">
+            <div class="filters-row">
+                <div class="form-group" id="filtro-mercado-container">
+                    <label>Mercado</label>
+                    <select class="form-control" id="filtro-mercado">
+                        <option value="todos">TODOS</option>
+                        <option value="ACCIONES">ACCIONES</option>
+                        <option value="CFI">CFI</option>
+                        <option value="FONDOS MUTUOS">FONDOS MUTUOS</option>
+                    </select>
+                </div>
+                <div class="form-group" id="filtro-origen-container">
+                    <label>Origen</label>
+                    <select class="form-control" id="filtro-origen">
+                        <option value="todos">TODOS</option>
+                        <option value="corredor">CORREDOR</option>
+                        <option value="bolsa">BOLSA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Periodo Comercial</label>
+                    <select class="form-control" id="filtro-periodo">
+                        <option value="">TODOS</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="filtro-pendiente" style="width:16px; height:16px;">
+                    <label style="margin:0; cursor:pointer;" for="filtro-pendiente">Calificación Pendiente</label>
+                </div>
+                <div class="filters-actions" style="margin-left: auto;">
+                    <button class="btn btn-primary" onclick="aplicarFiltros()">BUSCAR</button>
+                    <button class="btn btn-secondary" onclick="limpiarFiltros()">LIMPIAR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Superiores -->
+        <div class="action-bar" style="margin-bottom: 1rem;">
+            <button class="btn btn-secondary" onclick="window.location.href='ingreso.html'">INGRESAR FACTOR</button>
+            <button class="btn btn-secondary" onclick="window.location.href='ingreso_monto.html'">INGRESAR MONTO</button>
+            <button class="btn btn-secondary" onclick="abrirEdicion('modificar')">MODIFICAR</button>
+            <button class="btn btn-secondary" id="btn-eliminar" onclick="eliminarSeleccionados()">ELIMINAR</button>
+            <button class="btn btn-secondary" onclick="abrirEdicion('copiar')">COPIAR</button>
+            <button class="btn btn-secondary" id="btn-carga-factor" onclick="window.location.href='carga_masiva.html'">CARGA X FACTOR</button>
+            <button class="btn btn-secondary" id="btn-carga-monto" onclick="window.location.href='carga_monto.html'">CARGA X MONTO</button>
+            <button class="btn btn-secondary" style="margin-left: auto;" id="btn-eliminados" onclick="window.location.href='eliminados.html'" style="display:none;">VER ELIMINADOS</button>
+            <button class="btn btn-secondary" onclick="window.location.href='historico.html'">HISTÓRICO</button>
+        </div>
+
+        <!-- Tabla -->
+        <div class="panel" style="padding: 0;">
+            <div class="table-responsive" style="max-height: 50vh; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px;">Sel</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 100px;">Ejercicio</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 120px;">Instrumento</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 100px;">Fecha Pago</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 150px;">Descripción</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 130px;">Secuencia Evento</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 150px;">Factor de Actualización</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F8 - Con crédito por IDPC generados a contar del 01.01.2017</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F9 - Con crédito por IDPC acumulados hasta el 31.12.2016</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F10 - Con derecho a crédito por pago de IDPC voluntario</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F11 - Sin derecho a crédito</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F12 - Rentas provenientes del registro RAP y Diferencia Inicial...</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F13 - Otras rentas percibidas Sin Prioridad en su orden de imputación</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F14 - Exceso Distribuciones Desproporcionadas (N°9 Art.14 A)</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F15 - Utilidades afectadas con impuesto sustitutivo al FUT Ley N°20.780</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F16 - Rentas generadas hasta el 31.12.1983 y/o utilidades afectadas ISFUT Ley N°21.210</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F17 - Rentas Exentas de IGC (Artículo 11, Ley 18.401), Afectas a Impuesto Adicional</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F18 - Rentas Exentas de IGC y/o Impuesto Adicional (IA)</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F19 - Ingresos No Constitutivos de Renta</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F20 - No Sujetos a Restitución Hasta 31.12.2019 Sin derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F21 - No Sujetos a Restitución Hasta 31.12.2019 Con derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F22 - No Sujetos a Restitución contar 01.01.2020 Sin derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F23 - No Sujetos a Restitución contar 01.01.2020 Con derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F24 - Sujetos a restitución sin derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F25 - Sujetos a restitución Con derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F26 - Sujetos a restitución Sin derecho a devolución (Acum. hasta 31.12.2016)</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F27 - Sujetos a restitución Con derecho a devolución (Acum. hasta 31.12.2016)</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F28 - Crédito por IPE</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F29 - Asociados a rentas afectas Sin derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F30 - Asociados a rentas afectas Con derecho a devolución</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F31 - Asociados a rentas exentas (artículo 11, Ley 18.401) Sin derecho</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F32 - Asociados a rentas exentas (artículo 11, Ley 18.401) Con derecho</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F33 - Crédito por IPE</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F34 - Crédito por impuesto tasa adicional, Ex. Art. 21 LIR</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F35 - Tasa Efectiva del credito del FUT (TEF)</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F36 - TASA EFECTIVA DEL CRÉDITO DEL FUNT (TEX)</th>
+                            <th style="resize: horizontal; overflow: hidden; min-width: 50px; max-width: 400px; width: 100px; white-space: nowrap; text-overflow: ellipsis;">F37 - DEVOLUCION DE CAPITAL ART.17 N° 7 LIR.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-cuerpo">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="pagination-controls" style="display: none; justify-content: flex-end; align-items: center; gap: 1rem; margin: 1rem; font-size: 0.9rem;">
+                <span id="page-info" style="color: var(--text-secondary);">Página 1 de 1</span>
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem;" onclick="prevPage()">Anterior</button>
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem;" onclick="nextPage()">Siguiente</button>
+                <span style="margin-left: 1rem; color: var(--text-secondary);">Ir a:</span>
+                <input type="number" id="page-input" class="form-control" style="width: 70px; padding: 0.2rem; display: inline-block; text-align: center;" min="1" value="1">
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem;" onclick="goToPage()">Ir</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Init page
+        document.addEventListener('DOMContentLoaded', () => {
+            initSession();
+            if (localStorage.getItem('role') === 'admin') {
+                document.getElementById('btn-usuarios').style.display = 'inline-block';
+                document.getElementById('btn-eliminados').style.display = 'inline-block';
+            }
+            renderTable();
+        });
+
+        let currentPage = 1;
+        const rowsPerPage = 100;
+
+        async function renderTable() {
+            const tbody = document.getElementById('tabla-cuerpo');
+            
+            if(!window.currentData) {
+                tbody.innerHTML = '<tr><td colspan="38" style="text-align:center;">Cargando calificaciones desde MongoDB...</td></tr>';
+                try {
+                    const response = await fetch('https://localhost:3000/api/calificaciones');
+                    if (!response.ok) throw new Error('Error de red');
+                    window.currentData = await response.json();
+                    window.filteredData = [...window.currentData];
+                } catch(e) {
+                    console.error(e);
+                    tbody.innerHTML = '<tr><td colspan="38" style="text-align:center; color: red;">Error conectando al servidor backend.</td></tr>';
+                    return;
+                }
+            }
+
+            tbody.innerHTML = '';
+            let dataToRender = window.filteredData || window.currentData;
+
+            if(!dataToRender || dataToRender.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="38" style="text-align:center;">No hay calificaciones registradas.</td></tr>';
+                document.getElementById('pagination-controls').style.display = 'none';
+                return;
+            }
+            
+            const totalPages = Math.ceil(dataToRender.length / rowsPerPage);
+            if(currentPage > totalPages) currentPage = totalPages;
+            if(currentPage < 1) currentPage = 1;
+            
+            document.getElementById('pagination-controls').style.display = totalPages > 1 ? 'flex' : 'none';
+            document.getElementById('page-info').innerText = `Página ${currentPage} de ${totalPages} (${dataToRender.length} registros totales)`;
+
+            const startIdx = (currentPage - 1) * rowsPerPage;
+            const endIdx = startIdx + rowsPerPage;
+            const pageData = dataToRender.slice(startIdx, endIdx);
+
+            pageData.forEach((row) => {
+                let f = row.factores || {};
+                let tr = document.createElement('tr');
+                const getNum = (val) => val && val.$numberDecimal !== undefined ? Number(val.$numberDecimal) : Number(val || 0);
+                const n = (val) => getNum(val).toFixed(8);
+                
+                const formatDate = (dateStr) => {
+                    if(!dateStr) return '';
+                    if(dateStr.includes('-')) {
+                        const parts = dateStr.split('-');
+                        if(parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                    return dateStr;
+                };
+                
+                tr.setAttribute('data-row-id', row._id);
+                tr.setAttribute('data-mercado', row.mercado || '');
+                tr.setAttribute('data-origen', row.origen || '');
+                tr.setAttribute('data-anio', row.ejercicio || '');
+                tr.setAttribute('data-fecha', row.fecha_pago || '');
+                
+                let f17_27 = '';
+                for(let i=17; i<=27; i++) f17_27 += `<td>${n(f['f'+i])}</td>`;
+                let f28_37 = '';
+                for(let i=28; i<=37; i++) f28_37 += `<td>${n(f['f'+i])}</td>`;
+
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox" data-id="${row._id}" value="${row._id}"></td>
+                    <td>${row.ejercicio}</td>
+                    <td>${row.instrumento}</td>
+                    <td>${formatDate(row.fecha_pago)}</td>
+                    <td>${row.descripcion || ''}</td>
+                    <td>${row.secuencia_evento}</td>
+                    <td>${n(row.factor_act || 0)}</td>
+                    <td>${n(f.f8)}</td><td>${n(f.f9)}</td><td>${n(f.f10)}</td><td>${n(f.f11)}</td><td>${n(f.f12)}</td><td>${n(f.f13)}</td><td>${n(f.f14)}</td><td>${n(f.f15)}</td><td>${n(f.f16)}</td>
+                    ${f17_27}
+                    ${f28_37}
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const dataToRender = window.filteredData || window.currentData;
+            const totalPages = Math.ceil((dataToRender).length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        function goToPage() {
+            const input = document.getElementById('page-input');
+            let targetPage = parseInt(input.value);
+            const dataToRender = window.filteredData || window.currentData;
+            const totalPages = Math.ceil((dataToRender).length / rowsPerPage);
+            
+            if (isNaN(targetPage) || targetPage < 1) targetPage = 1;
+            if (targetPage > totalPages && totalPages > 0) targetPage = totalPages;
+            
+            currentPage = targetPage;
+            renderTable();
+        }
+
+        function abrirEdicion(modo) {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if(checkboxes.length !== 1) {
+                showModal('Aviso', 'Seleccione un único registro.', 'error');
+                return;
+            }
+            const selectedId = checkboxes[0].getAttribute('data-id');
+            const rowData = window.currentData.find(r => r._id === selectedId);
+            if(rowData) {
+                sessionStorage.setItem('editData', JSON.stringify(rowData));
+                sessionStorage.setItem('editMode', modo);
+                window.location.href = 'ingreso.html';
+            }
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtro-mercado').selectedIndex = 0;
+            document.getElementById('filtro-origen').selectedIndex = 0;
+            document.getElementById('filtro-periodo').selectedIndex = 0;
+            document.getElementById('filtro-pendiente').checked = false;
+            
+            window.filteredData = [...window.currentData];
+            currentPage = 1;
+            renderTable();
+        }
+
+        function aplicarFiltros() {
+            const mercado = document.getElementById('filtro-mercado').value;
+            const origen = document.getElementById('filtro-origen').value;
+            const anio = document.getElementById('filtro-periodo').value;
+            const soloPendiente = document.getElementById('filtro-pendiente').checked;
+            
+            window.filteredData = window.currentData.filter(row => {
+                const rMercado = (row.mercado || 'ACCIONES').toString().trim();
+                const rOrigen = (row.origen || '').toString().trim().toLowerCase();
+                const rAnio = (row.ejercicio || '').toString().trim();
+                
+                const fMercado = mercado.toString().trim();
+                const fOrigen = origen.toString().trim().toLowerCase();
+                const fAnio = anio ? anio.toString().trim() : '';
+
+                if(fMercado !== 'todos' && fMercado !== 'TODOS' && rMercado.toUpperCase() !== fMercado.toUpperCase()) return false;
+                if(fOrigen !== 'todos' && rOrigen !== fOrigen) return false;
+                if(fAnio !== '' && rAnio !== fAnio) return false;
+                
+                if (soloPendiente) {
+                    let isPending = true;
+                    const getNum = (v) => v && v.$numberDecimal !== undefined ? Number(v.$numberDecimal) : Number(v || 0);
+                    if (getNum(row.factor_act) !== 0) isPending = false;
+                    if (row.factores) {
+                        for (let i = 8; i <= 37; i++) {
+                            if (getNum(row.factores['f'+i]) !== 0) {
+                                isPending = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isPending) return false;
+                }
+                return true;
+            });
+            
+            currentPage = 1;
+            renderTable();
+            showModal('Búsqueda Exitosa', `Se encontraron ${window.filteredData.length} registros aplicando los filtros.`, 'success');
+        }
+
+        function eliminarSeleccionados() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if(checkboxes.length === 0) {
+                showModal('Aviso', 'Seleccione registros a eliminar.', 'error');
+                return;
+            }
+            
+            showModal('Confirmar Eliminación', '¿Confirmar eliminación?', 'error', async () => {
+                const idsToRemove = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+                const user = localStorage.getItem('username') || 'SISTEMA';
+                const role = localStorage.getItem('role') || 'UNKNOWN';
+
+                let successCount = 0;
+                
+                showModal('Procesando...', 'Procesando eliminación...', 'info');
+
+                for (let id of idsToRemove) {
+                    try {
+                        const res = await fetch(`https://localhost:3000/api/calificaciones/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ usuario: user, perfil: role })
+                        });
+                        if (res.ok) successCount++;
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+
+                showModal('Completado', `${successCount} registros eliminados.`, 'success', () => {
+                    renderTable();
+                });
+            });
+        }
+    </script>
+</body>
+</html>
